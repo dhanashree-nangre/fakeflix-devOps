@@ -1,4 +1,4 @@
-# netflix-clone-sem1
+# netflix-clone
 making a netflix clone 
 
 Screenshots
