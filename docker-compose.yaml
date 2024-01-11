@@ -1,0 +1,24 @@
+services:
+  api:
+    build: ./netflix-api
+    container_name: api_c
+    ports: 
+      - '4000:4000'
+    volumes: 
+      - ./netflix-api:/serv-api
+      - ./netflix-api:/node_modules
+    image: dhana/fake-flex-api:master
+  
+  fake-flix: 
+    build: ./netflix-ui
+    container_name: fake-flix_c
+    ports: 
+      - '3000:3000'
+    volumes: 
+      - ./netflix-ui:/app
+      - ./netflix-ui:/node_modules
+    stdin_open: true
+    tty: true 
+    image: dhana/fake-flex-ui:master
+
+    # orignal link https://netflix-clone-sem1-tgtdrwmp3q-uc.a.run.app/login
