@@ -1,0 +1,94 @@
+
+pipeline {
+    agent any
+    tools {
+        jdk 'jdk17'
+        nodejs 'node19'
+    }
+    environment {
+        SCANNER_HOME = tool 'Sonar-scanner'
+    }
+    stages {
+        stage('clean workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Checkout from Git') {
+            steps {
+                git branch: 'main', url: 'https://github.com/dhanashree-nangre/fakeflix'
+            }
+        }
+        stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('Sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Netflix \
+                    -Dsonar.projectKey=Netflix '''
+                }
+            }
+        }
+        stage('OWASP FS SCAN') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
+        stage('Docker Compose') {
+            steps {
+                script {
+                    // Assuming you have a docker-compose.yml file in your project
+                    sh 'docker-compose build'
+                    //sh 'docker-compose run'
+                }
+            }
+        }
+        stage('Docker tag and push') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
+                     //  sh "docker tag fake-flex-ui dhana1996/fake-flex-ui:latest "
+                       //sh "docker push dhana1996/fake-flex-ui:latest "
+                       //sh "docker tag fake-flex-api dhana1996/fake-flex-api:latest "
+                       //sh "docker push dhana1996/fake-flex-api:latest "
+                        sh "docker-compose push"
+                    }
+                }
+            }
+        }
+        stage("TRIVY"){
+            steps{
+                sh "trivy image dhana1996/fake-flex-api:latest > trivyimageapi.txt" 
+                sh "trivy image dhana1996/fake-flex-ui:latest > trivyimageapi.txt" 
+            }
+        }
+        stage('Deploy to Container') {
+            steps {
+                script {
+                    sh 'docker stop ui'
+                    sh 'docker rm ui'
+                    sh 'docker stop api'
+                    sh 'docker rm api'
+                    sh 'docker run -d --name ui -p 3000:3000 dhana1996/fake-flex-ui:latest'
+                    sh 'docker run -d --name api -p 4000:4000 dhana1996/fake-flex-api:latest'
+                }
+            }
+        }
+        
+    }
+    post {
+        always {
+            // This post section will run after all stages, regardless of success or failure
+
+            emailext subject: "Your Build ${currentBuild.result}",
+                      body: "Check the build console output at ${BUILD_URL} to view the results.",
+                      to: 'dhanashreenagr1e@gmail.com',
+                      replyTo: 'dhanashreenagre1@gmail.com',
+                      mimeType: 'text/html'
+        }
+    }
+}
