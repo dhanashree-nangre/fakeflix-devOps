@@ -7,7 +7,7 @@ services:
     volumes: 
       - ./netflix-api:/serv-api
       - ./netflix-api:/node_modules
-    image: fake-flex-api
+    image: dhana1996/fake-flex-api:latest
   
   fake-flix: 
     build: ./netflix-ui
@@ -19,6 +19,6 @@ services:
       - ./netflix-ui:/node_modules
     stdin_open: true
     tty: true 
-    image: fake-flex-ui
+    image: dhana1996/fake-flex-ui:latest
 
     # orignal link https://netflix-clone-sem1-tgtdrwmp3q-uc.a.run.app/login
