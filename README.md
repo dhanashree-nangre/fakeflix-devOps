@@ -1,4 +1,4 @@
-**MyFlix Application | Netflix Clone**
+# **MyFlix Application | Netflix Clone**
 
 This project is a Netflix-like application, engineered using Python and microservices architecture. It features user authentication, personalized recommendations, and a modern, responsive UI. The application leverages DevOps practices for continuous integration and delivery, ensuring scalability, security, and performance monitoring.
 
